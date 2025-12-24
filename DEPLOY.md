@@ -27,7 +27,7 @@ git add .
 git commit -m "Initial commit: Şikayet Analiz Sistemi"
 
 # GitHub repository'nizi ekleyin (URL'i kendi repository'nizle değiştirin)
-git remote add origin https://github.com/Oguzerez/sikayet-analiz-sistemi.git
+git remote add origin https://github.com/oguzerez/sikayet-analiz-sistemi.git
 
 # Dosyaları yükle
 git branch -M main
@@ -55,7 +55,7 @@ git push -u origin main
 3. GitHub hesabınızla giriş yapın
 4. **"New app"** butonuna tıklayın
 5. Formu doldurun:
-   - **Repository**: `Oguzerez/sikayet-analiz-sistemi`
+   - **Repository**: `oguzerez/sikayet-analiz-sistemi`
    - **Branch**: `main`
    - **Main file path**: `streamlit_app_v3.py`
 6. **"Deploy!"** butonuna tıklayın
@@ -119,7 +119,7 @@ Sorun yaşarsanız:
 ## ✅ Başarılı Deploy Sonrası
 
 Deploy başarılı olduktan sonra:
-- Uygulamanız `https://Oguzerez-sikayet-analiz-sistemi.streamlit.app` adresinde olacak
+- Uygulamanız `https://oguzerez-sikayet-analiz-sistemi.streamlit.app` adresinde olacak
 - Bu linki herkesle paylaşabilirsiniz!
 - Otomatik güncellemeler: GitHub'a push ettiğinizde otomatik olarak güncellenir
 
