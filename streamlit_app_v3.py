@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import torch.nn.functional as F
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoModel, pipeline
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoModel
 from sklearn.metrics.pairwise import cosine_similarity
 import plotly.graph_objects as go
 import plotly.express as px
@@ -353,61 +353,6 @@ def load_data():
     
     return df
 
-@st.cache_resource
-def load_summary_models():
-    """Özet ve duygu analizi modellerini yükle - Çalışan dosyadaki basit yaklaşım"""
-    from transformers import pipeline
-    
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    
-    # Kontrol edilecek yollar (öncelik sırasına göre)
-    possible_paths = [
-        os.path.join(base_path, "yerel_modeller"),  # Proje klasöründe
-        os.path.join(os.path.expanduser("~"), "Desktop", "yerel_modeller"),  # Masaüstünde
-        os.path.join(os.path.expanduser("~"), "PycharmProjects", "PythonProject", "duygu_ozet", "yerel_modeller"),  # PycharmProjects'te
-        r"C:\Users\smt20\Desktop\yerel_modeller",  # Doğrudan yol
-    ]
-    
-    yerel_path = None
-    for path in possible_paths:
-        if os.path.exists(path):
-            ozet_path = os.path.join(path, "ozetleme_modeli")
-            duygu_path = os.path.join(path, "duygu_modeli")
-            if os.path.exists(ozet_path) and os.path.exists(duygu_path):
-                yerel_path = path
-                break
-    
-    if yerel_path is None:
-        return None, None
-    
-    ozet_path = os.path.join(yerel_path, "ozetleme_modeli")
-    duygu_path = os.path.join(yerel_path, "duygu_modeli")
-    
-    device_id = 0 if torch.cuda.is_available() else -1
-    
-    try:
-        # Çalışan dosyadaki basit yaklaşım: Direkt pipeline kullan, tokenizer'ı manuel yükleme
-        # Pipeline otomatik olarak tokenizer'ı yükleyecek
-        summarizer = pipeline(
-            "summarization",
-            model=ozet_path,
-            tokenizer=ozet_path,
-            device=device_id
-        )
-        
-        classifier = pipeline(
-            "zero-shot-classification",
-            model=duygu_path,
-            tokenizer=duygu_path,
-            device=device_id
-        )
-        
-        return summarizer, classifier
-    except Exception as e:
-        # Hata mesajını exception olarak fırlat (show_summary_analysis'te yakalanacak)
-        import traceback
-        error_detail = traceback.format_exc()
-        raise Exception(f"Model yükleme hatası:\n{str(e)}\n\nDetay:\n{error_detail}")
 
 # =========================================================
 # SABİTLER
@@ -2033,210 +1978,6 @@ def show_time_series_analysis():
                 except Exception as exc:
                     st.error(f"Anomali analizi hatası: {exc}")
 
-# =========================================================
-# ÖZET ANALİZİ FONKSİYONU
-# =========================================================
-def show_summary_analysis():
-    """Özet ve Duygu Analizi sekmesi"""
-    st.title("📝 Şikayet Özet ve Duygu Analizi")
-    st.markdown("---")
-    
-    # Modelleri yükle
-    try:
-        summarizer, classifier = load_summary_models()
-    except Exception as e:
-        st.error(f"❌ Model yükleme hatası: {str(e)}")
-        st.exception(e)
-        return
-    
-    if summarizer is None or classifier is None:
-        st.error("⚠️ Modeller yüklenemedi. Lütfen model dosyalarının doğru konumda olduğundan emin olun.")
-        
-        # Kontrol edilen yolları göster
-        base_path = os.path.dirname(os.path.abspath(__file__))
-        checked_paths = [
-            os.path.join(base_path, "yerel_modeller"),
-            os.path.join(os.path.expanduser("~"), "Desktop", "yerel_modeller"),
-            os.path.join(os.path.expanduser("~"), "PycharmProjects", "PythonProject", "duygu_ozet", "yerel_modeller"),
-            r"C:\Users\smt20\Desktop\yerel_modeller",
-        ]
-        
-        st.info("💡 Kontrol edilen yollar:")
-        for path in checked_paths:
-            exists = "✅" if os.path.exists(path) else "❌"
-            st.text(f"{exists} {path}")
-        
-        st.info("💡 Model yolu: `yerel_modeller/ozetleme_modeli` ve `yerel_modeller/duygu_modeli` klasörleri gerekli.")
-        return
-    
-    # İKİ KOLONLU LAYOUT - SOL: INPUT, SAĞ: SONUÇLAR
-    col_left, col_right = st.columns([1, 1], gap="large")
-    
-    with col_left:
-        st.markdown("### 📝 Şikayet Başlığı (Opsiyonel)")
-        baslik = st.text_input(
-            "Şikayet Başlığı",
-            placeholder="Şikayet başlığı (opsiyonel)",
-            label_visibility="collapsed"
-        )
-        
-        st.markdown("### 📄 Şikayet Metni")
-        sikayet_metni = st.text_area(
-            "Şikayet Metni",
-            height=400,
-            placeholder="Şikayet metnini buraya yapıştırın...",
-            label_visibility="collapsed"
-        )
-        
-        # Analiz butonu
-        analiz_butonu = st.button(
-            "🔍 Analiz Et",
-            type="primary",
-            use_container_width=True
-        )
-    
-    with col_right:
-        st.markdown("### 📊 Analiz Sonuçları")
-        
-        # Analiz yap
-        if analiz_butonu or (sikayet_metni and sikayet_metni.strip()):
-            if not sikayet_metni or not sikayet_metni.strip():
-                st.warning("⚠️ Lütfen şikayet metnini girin.")
-            else:
-                # Tam metin oluştur
-                if baslik and baslik.strip():
-                    full_text = f"{baslik} {sikayet_metni}"
-                else:
-                    full_text = sikayet_metni
-                
-                with st.spinner("🔄 Analiz yapılıyor, lütfen bekleyin..."):
-                    try:
-                        # Özet
-                        ozet_sonuc = summarizer(
-                            full_text,
-                            num_beams=5,
-                            max_length=300,
-                            min_length=20,
-                            length_penalty=2.0,
-                            early_stopping=True,
-                            no_repeat_ngram_size=4
-                        )
-                        ozet_metni = ozet_sonuc[0]["summary_text"]
-                        
-                        # Duygu analizi
-                        ETIKETLER = ["Öfke", "Hayal Kırıklığı", "Bıkkınlık", "Endişe", "Şaşkınlık", "Tehdit"]
-                        duygu_sonuc = classifier(
-                            full_text,
-                            ETIKETLER,
-                            multi_label=False
-                        )
-                        
-                        # =========================================================
-                        # ÖZET BÖLÜMÜ - RENKLİ KART
-                        # =========================================================
-                        st.markdown("---")
-                        st.markdown("#### 📝 Şikayet Özeti")
-                        st.markdown(f"""
-                        <div style="
-                            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-                            border-left: 4px solid #667eea;
-                            border-radius: 12px;
-                            padding: 1.5rem;
-                            margin: 1rem 0;
-                            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-                        ">
-                            <p style="
-                                color: #e0e0e0;
-                                font-size: 1.1rem;
-                                line-height: 1.8;
-                                margin: 0;
-                                text-align: justify;
-                            ">{ozet_metni}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                        # =========================================================
-                        # DUYGU SKORLARI GRAFİĞİ
-                        # =========================================================
-                        st.markdown("---")
-                        st.markdown("#### 📊 Duygu Skorları")
-                        
-                        # Duygu skorlarını hazırla
-                        duygu_labels = duygu_sonuc["labels"]
-                        duygu_scores = [s * 100 for s in duygu_sonuc["scores"]]
-                        
-                        # Bar chart oluştur
-                        fig_duygu = go.Figure()
-                        
-                        # Duygu renkleri
-                        duygu_renkler = {
-                            "Öfke": "#ef4444",
-                            "Hayal Kırıklığı": "#f59e0b",
-                            "Bıkkınlık": "#8b5cf6",
-                            "Endişe": "#3b82f6",
-                            "Şaşkınlık": "#10b981",
-                            "Tehdit": "#dc2626"
-                        }
-                        
-                        # Her duygu için renkli bar
-                        bar_colors = [duygu_renkler.get(label, "#667eea") for label in duygu_labels]
-                        
-                        fig_duygu.add_trace(go.Bar(
-                            x=duygu_labels,
-                            y=duygu_scores,
-                            marker=dict(
-                                color=bar_colors,
-                                line=dict(color='#1a1a2e', width=2)
-                            ),
-                            text=[f"%{s:.1f}" for s in duygu_scores],
-                            textposition='outside',
-                            textfont=dict(size=14, color='#ffffff', family='Arial Black'),
-                            hovertemplate='<b>%{x}</b><br>Skor: %{y:.2f}%<extra></extra>'
-                        ))
-                        
-                        fig_duygu.update_layout(
-                            plot_bgcolor='rgba(0,0,0,0)',
-                            paper_bgcolor='rgba(0,0,0,0)',
-                            font_color='#fff',
-                            height=350,
-                            margin=dict(l=20, r=20, t=20, b=60),
-                            xaxis=dict(
-                                title=dict(text="Duygular", font=dict(size=14, color='#fff', family='Arial Black')),
-                                tickfont=dict(size=12, color='#fff', family='Arial'),
-                                showgrid=False
-                            ),
-                            yaxis=dict(
-                                title=dict(text="Skor (%)", font=dict(size=14, color='#fff', family='Arial Black')),
-                                tickfont=dict(size=12, color='#fff'),
-                                showgrid=True,
-                                gridcolor='rgba(255,255,255,0.1)',
-                                range=[0, 100]
-                            ),
-                            showlegend=False
-                        )
-                        
-                        st.plotly_chart(fig_duygu, use_container_width=True)
-                        
-                    except Exception as e:
-                        st.error(f"❌ Analiz hatası: {str(e)}")
-                        st.exception(e)
-        else:
-            # Başlangıç mesajı
-            st.markdown("""
-            <div style="
-                background: rgba(42, 42, 62, 0.5);
-                border: 2px dashed rgba(102, 126, 234, 0.3);
-                border-radius: 12px;
-                padding: 3rem;
-                text-align: center;
-                margin-top: 2rem;
-            ">
-                <p style="color: #b8b8d1; font-size: 1.2rem; margin: 0;">
-                    👈 Sol taraftaki formu doldurup<br>
-                    <strong style="color: #667eea;">"Analiz Et"</strong> butonuna tıklayın
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
 
 # =========================================================
 # ANA FONKSİYON - MENÜ İLE
@@ -2248,7 +1989,7 @@ def main():
         df = load_data()
     
     # MENÜ - TABS
-    tab1, tab2, tab3, tab4 = st.tabs(["🔍 Şikayet Analizi", "📊 Dashboard", "📈 Zaman Serisi", "📝 Özet"])
+    tab1, tab2, tab3 = st.tabs(["🔍 Şikayet Analizi", "📊 Dashboard", "📈 Zaman Serisi"])
     
     with tab1:
         show_complaint_analysis(tokenizer, clf_model, emb_model, device, df)
@@ -2258,9 +1999,6 @@ def main():
     
     with tab3:
         show_time_series_analysis()
-    
-    with tab4:
-        show_summary_analysis()
 
 if __name__ == "__main__":
     main()

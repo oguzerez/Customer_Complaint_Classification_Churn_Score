@@ -43,7 +43,7 @@ Modern, kapsamlı bir müşteri şikayet analiz ve churn risk yönetim platformu
 1. **Repository'yi klonlayın:**
 ```bash
 git clone <repository-url>
-cd şikayet_heybesi_V2
+cd customer_complaint
 ```
 
 2. **Sanal ortam oluşturun (önerilir):**
@@ -60,7 +60,7 @@ pip install -r requirements.txt
 ```
 
 4. **Model dosyalarını kontrol edin:**
-   - `bert_oversampling_model/` klasörü mevcut olmalı
+   - `bert_based_classification_models/` klasörü mevcut olmalı
    - `df_weigthed_final.pkl` veri dosyası mevcut olmalı
 
 5. **Uygulamayı çalıştırın:**
@@ -84,11 +84,11 @@ streamlit run streamlit_app_v3.py
 ## 📁 Proje Yapısı
 
 ```
-şikayet_heybesi_V2/
+customer_complaint/
 ├── streamlit_app_v3.py          # Ana uygulama dosyası
 ├── requirements.txt               # Python bağımlılıkları
 ├── README.md                      # Bu dosya
-├── bert_oversampling_model/      # BERT model dosyaları
+├── bert_based_classification_models/      # BERT model dosyaları
 │   ├── config.json
 │   ├── model.safetensors
 │   └── ...
@@ -115,7 +115,6 @@ streamlit run streamlit_app_v3.py
    - Ana Kategori
    - Alt Kategori (ana kategori seçildiğinde otomatik filtrelenir)
    - Churn Band
-   - Tarih Aralığı
 3. Grafikleri ve KPI'ları inceleyin
 
 ### Zaman Serisi Analizi
@@ -144,7 +143,7 @@ Bu proje özel kullanım içindir.
 
 ## 👤 Geliştirici
 
-İbrahim Akdaş
+Oğuzhan EREZ
 
 ## 🤝 Katkıda Bulunma
 
