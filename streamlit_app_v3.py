@@ -24,6 +24,32 @@ st.set_page_config(
 )
 
 # =========================================================
+# GOOGLE ANALYTICS
+# =========================================================
+def get_ga_id():
+    """GA4 Measurement ID (G-XXXX) from secrets or env."""
+    try:
+        return st.secrets["GA_MEASUREMENT_ID"]
+    except Exception:
+        return os.getenv("GA_MEASUREMENT_ID", "")
+
+ga_id = get_ga_id()
+if ga_id:
+    st.markdown(
+        f"""
+        <!-- Google Analytics (GA4) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={ga_id}"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){{dataLayer.push(arguments);}}
+          gtag('js', new Date());
+          gtag('config', '{ga_id}');
+        </script>
+        """,
+        unsafe_allow_html=True
+    )
+
+# =========================================================
 # DARK MODE CSS - Daha Okunabilir Renkler
 # =========================================================
 st.markdown("""
