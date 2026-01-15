@@ -15,7 +15,7 @@
 Terminal/PowerShell'de şu komutları çalıştırın:
 
 ```bash
-cd şikayet_heybesi_V2
+cd customer_complaint
 
 # Git repository başlat
 git init
@@ -27,7 +27,7 @@ git add .
 git commit -m "Initial commit: Şikayet Analiz Sistemi"
 
 # GitHub repository'nizi ekleyin (URL'i kendi repository'nizle değiştirin)
-git remote add origin https://github.com/oguzerez/sikayet-analiz-sistemi.git
+git remote add origin https://github.com/oguzerez/Customer_Complaint_Classification_Churn_Score.git
 
 # Dosyaları yükle
 git branch -M main
@@ -39,7 +39,7 @@ git push -u origin main
 1. [GitHub Desktop](https://desktop.github.com/) indirin ve kurun
 2. GitHub Desktop'u açın
 3. **File → Add Local Repository**
-4. `şikayet_heybesi_V2` klasörünü seçin
+4. `customer_complaint` klasörünü seçin
 5. **Publish repository** butonuna tıklayın
 
 ### Yöntem 3: GitHub Web Arayüzü
@@ -55,7 +55,7 @@ git push -u origin main
 3. GitHub hesabınızla giriş yapın
 4. **"New app"** butonuna tıklayın
 5. Formu doldurun:
-   - **Repository**: `oguzerez/sikayet-analiz-sistemi`
+   - **Repository**: `oguzerez/Customer_Complaint_Classification_Churn_Score`
    - **Branch**: `main`
    - **Main file path**: `streamlit_app_v3.py`
 6. **"Deploy!"** butonuna tıklayın
